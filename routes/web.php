@@ -26,6 +26,9 @@ Route::post('/inventario/entrada', [InventarioController::class, 'storeEntrada']
 
 Route::get('/inventario/salida', [InventarioController::class, 'createSalida'])->name('inventario.createSalida');
 Route::post('/inventario/salida', [InventarioController::class, 'storeSalida'])->name('inventario.storeSalida');
+// kardex dentro de inventario
+Route::get('/inventario/kardex', [InventarioController::class, 'kardex'])->name('inventario.kardex');
+
 
 
 require __DIR__.'/auth.php';
