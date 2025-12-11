@@ -2,63 +2,53 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Proveedor;
 use Illuminate\Http\Request;
 
 class ProveedorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $proveedores = Proveedor::all();
+        return view('proveedores.index', compact('proveedores'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('proveedores.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nombre' => 'required',
+        ]);
+
+        Proveedor::create($request->all());
+
+        return redirect()->route('proveedores.index')->with('success', 'Proveedor creado correctamente');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(Proveedor $proveedor)
     {
-        //
+        return view('proveedores.edit', compact('proveedor'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, Proveedor $proveedor)
     {
-        //
+        $request->validate([
+            'nombre' => 'required',
+        ]);
+
+        $proveedor->update($request->all());
+
+        return redirect()->route('proveedores.index')->with('success', 'Proveedor actualizado correctamente');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Proveedor $proveedor)
     {
-        //
-    }
+        $proveedor->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return redirect()->route('proveedores.index')->with('success', 'Proveedor eliminado correctamente');
     }
 }
