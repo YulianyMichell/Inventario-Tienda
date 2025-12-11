@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InventarioController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login'); // 🔥 Redirige al login
 });
 
 Route::get('/dashboard', function () {
