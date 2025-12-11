@@ -30,4 +30,7 @@ class Venta extends Model
     {
         return $this->hasMany(VentaDetalle::class);
     }
+    public function producto() {
+    return $this->belongsTo(Producto::class);
+}
 }
