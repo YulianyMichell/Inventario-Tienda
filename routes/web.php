@@ -3,32 +3,79 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InventarioController;
+use Illuminate\Support\Facades\Auth;
 
+/*
+|--------------------------------------------------------------------------
+| Redirección inicial SIEMPRE al login (forzando logout)
+|--------------------------------------------------------------------------
+*/
 Route::get('/', function () {
-    return redirect()->route('login'); // 🔥 Redirige al login
+    Auth::logout();             // 🔥 Fuerza cerrar sesión siempre
+    session()->invalidate();    // Limpia la sesión
+    session()->regenerateToken();
+
+    return redirect()->route('login'); // Redirige al login
 });
 
+/*
+|--------------------------------------------------------------------------
+| Dashboard (solo autenticados)
+|--------------------------------------------------------------------------
+*/
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+/*
+|--------------------------------------------------------------------------
+| Perfil de usuario (Laravel Breeze)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
 });
 
-// Inventario
-Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario.index');
+/*
+|--------------------------------------------------------------------------
+| Inventario (TODAS las rutas protegidas)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->prefix('inventario')->name('inventario.')->group(function () {
 
-Route::get('/inventario/entrada', [InventarioController::class, 'createEntrada'])->name('inventario.createEntrada');
-Route::post('/inventario/entrada', [InventarioController::class, 'storeEntrada'])->name('inventario.storeEntrada');
+    Route::get('/', [InventarioController::class, 'index'])
+        ->name('index');
 
-Route::get('/inventario/salida', [InventarioController::class, 'createSalida'])->name('inventario.createSalida');
-Route::post('/inventario/salida', [InventarioController::class, 'storeSalida'])->name('inventario.storeSalida');
-// kardex dentro de inventario
-Route::get('/inventario/kardex', [InventarioController::class, 'kardex'])->name('inventario.kardex');
+    // Entradas
+    Route::get('/entrada', [InventarioController::class, 'createEntrada'])
+        ->name('createEntrada');
 
+    Route::post('/entrada', [InventarioController::class, 'storeEntrada'])
+        ->name('storeEntrada');
 
+    // Salidas
+    Route::get('/salida', [InventarioController::class, 'createSalida'])
+        ->name('createSalida');
 
+    Route::post('/salida', [InventarioController::class, 'storeSalida'])
+        ->name('storeSalida');
+
+    // Kardex
+    Route::get('/kardex', [InventarioController::class, 'kardex'])
+        ->name('kardex');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Rutas Breeze (login, register, logout, etc.)
+|--------------------------------------------------------------------------
+*/
 require __DIR__.'/auth.php';
