@@ -98,4 +98,22 @@ class InventarioController extends Controller
 
         return redirect()->route('inventario.index')->with('success', 'Salida registrada correctamente.');
     }
+    public function kardex(Request $request)
+{
+    $producto_id = $request->producto_id;
+
+    // Si no escoge producto, no mostrar nada
+    $movimientos = [];
+
+    if ($producto_id) {
+        $movimientos = Inventario::where('producto_id', $producto_id)
+            ->orderBy('fecha', 'asc')
+            ->get();
+    }
+
+    $productos = Producto::all();
+
+    return view('inventario.kardex', compact('movimientos', 'productos'));
+}
+
 }
