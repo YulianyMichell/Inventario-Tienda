@@ -72,6 +72,11 @@ Route::middleware('auth')->prefix('inventario')->name('inventario.')->group(func
     Route::get('/kardex', [InventarioController::class, 'kardex'])
         ->name('kardex');
 });
+// rutas del controlador de ventas
+Route::get('/ventas', [VentaController::class, 'index'])->name('ventas.index');
+Route::get('/ventas/create', [VentaController::class, 'create'])->name('ventas.create');
+Route::post('/ventas', [VentaController::class, 'store'])->name('ventas.store');
+
 
 /*
 |--------------------------------------------------------------------------
