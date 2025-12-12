@@ -8,24 +8,21 @@ use Illuminate\Http\Request;
 class FacturaController extends Controller
 {
     // Mostrar una factura específica.
-    public function show($id)
-    {
-        // Cargar venta con cliente y detalles incluidos
-        $venta = Venta::with(['cliente', 'detalles.producto'])->findOrFail($id);
+    public function show(Venta $venta)
+{
+    // Cargar relaciones
+    $venta->load(['cliente', 'detalles.producto']);
 
-        // Calcular total si no existe en BD
-        $total = 0;
-        foreach ($venta->detalles as $item) {
-            $total += $item->cantidad * $item->precio;
-        }
+    // Calcular total (por si no está guardado en BD)
+    $total = $venta->total ?? $venta->detalles->sum(function ($item) {
+        return $item->cantidad * $item->precio;
+    });
 
-        return view('factura.show', [
-            'venta' => $venta,
-            'total' => $total
-        ]);
-    }
+    return view('factura.show', compact('venta', 'total'));
+}
 
-    // Generar una lista de facturas.
+
+    
       
      
     public function index()
