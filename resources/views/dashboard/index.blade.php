@@ -45,7 +45,7 @@
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow-lg">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800">Entradas y Salidas por Día</h2>
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Movimientos diarios</h2>
             <div class="h-64 flex items-center justify-center text-gray-500 border-dashed border-2 p-4 rounded-lg">
                 [Integrar librería de gráficos aquí para el Line Chart]
             </div>
