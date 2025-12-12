@@ -1,40 +1,178 @@
 @extends('layouts.admin')
 
+@section('title', 'Crear Producto')
+
 @section('content')
+    
+    <h1 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-2">
+        Crear Nuevo Producto
+    </h1>
+    
+    <div class="bg-white shadow-xl rounded-xl p-8 max-w-4xl mx-auto">
+        
+        <form action="{{ route('productos.store') }}" method="POST">
+            @csrf
 
-<h1 class="text-3xl font-semibold mb-8">Crear Producto</h1>
+            {{-- Fila 1: Nombre --}}
+            <div class="mb-5">
+                <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Producto *</label>
+                <input type="text" 
+                       name="nombre" 
+                       id="nombre" 
+                       value="{{ old('nombre') }}"
+                       required 
+                       placeholder="Ej: Huevos (Cartón)"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg 
+                              focus:ring-2 focus:ring-[#8BB3FF] focus:border-[#8BB3FF] 
+                              transition duration-150 @error('nombre') border-red-500 @enderror">
+                @error('nombre')
+                    <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                @enderror
+            </div>
 
-<div class="max-w-lg bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20">
+            {{-- Fila 2: Categoría y Proveedor --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                
+                {{-- CAMPO CATEGORÍA --}}
+                <div>
+                    <label for="categoria_id" class="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
+                    <select name="categoria_id" 
+                            id="categoria_id" 
+                            required 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg 
+                                   focus:ring-2 focus:ring-[#8BB3FF] focus:border-[#8BB3FF] 
+                                   transition duration-150 @error('categoria_id') border-red-500 @enderror">
+                        
+                        <option value="">-- Seleccione Categoría --</option>
+                        @foreach ($categorias as $categoria) 
+                            <option value="{{ $categoria->id }}" {{ old('categoria_id') == $categoria->id ? 'selected' : '' }}>
+                                {{ $categoria->nombre }}
+                            </option>
+                        @endforeach
+                        
+                    </select>
+                    @error('categoria_id')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
 
-    <form action="{{ route('productos.store') }}" method="POST">
-        @csrf
+                {{-- CAMPO PROVEEDOR --}}
+                <div>
+                    <label for="proveedor_id" class="block text-sm font-medium text-gray-700 mb-1">Proveedor *</label>
+                    <select name="proveedor_id" 
+                            id="proveedor_id" 
+                            required 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg 
+                                   focus:ring-2 focus:ring-[#8BB3FF] focus:border-[#8BB3FF] 
+                                   transition duration-150 @error('proveedor_id') border-red-500 @enderror">
+                        
+                        <option value="">-- Seleccione Proveedor --</option>
+                        @foreach ($proveedores as $proveedor)
+                            <option value="{{ $proveedor->id }}" {{ old('proveedor_id') == $proveedor->id ? 'selected' : '' }}>
+                                {{ $proveedor->nombre }}
+                            </option>
+                        @endforeach
+                        
+                    </select>
+                    @error('proveedor_id')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
 
-        <label class="text-white">Nombre</label>
-        <input type="text" name="nombre"
-            class="w-full mt-1 mb-4 px-4 py-2 rounded-lg bg-white/20 text-white outline-none border border-white/20">
+            {{-- Fila 3: Precios (Compra, Venta, Stock) --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
 
-        <label class="text-white">Categoría</label>
-        <select name="categoria_id"
-            class="w-full mt-1 mb-4 px-4 py-2 rounded-lg bg-white/20 text-white border border-white/20">
-            @foreach ($categorias as $cat)
-                <option value="{{ $cat->id }}">{{ $cat->nombre }}</option>
-            @endforeach
-        </select>
+                {{-- CAMPO PRECIO DE COMPRA --}}
+                <div>
+                    <label for="precio_compra" class="block text-sm font-medium text-gray-700 mb-1">Precio de Compra ($) *</label>
+                    <input type="number" 
+                            name="precio_compra" 
+                            id="precio_compra" 
+                            value="{{ old('precio_compra') }}"
+                            step="0.01" 
+                            required 
+                            min="0.01"
+                            placeholder="12000.00"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg 
+                                    focus:ring-2 focus:ring-[#8BB3FF] focus:border-[#8BB3FF] 
+                                    transition duration-150 @error('precio_compra') border-red-500 @enderror">
+                    @error('precio_compra')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
 
-        <label class="text-white">Precio</label>
-        <input type="number" name="precio"
-            class="w-full mt-1 mb-4 px-4 py-2 rounded-lg bg-white/20 text-white border border-white/20">
+                {{-- CAMPO PRECIO DE VENTA --}}
+                <div>
+                    <label for="precio_venta" class="block text-sm font-medium text-gray-700 mb-1">Precio de Venta ($) *</label>
+                    <input type="number" 
+                            name="precio_venta" 
+                            id="precio_venta" 
+                            value="{{ old('precio_venta') }}"
+                            step="0.01" 
+                            required 
+                            min="0.01"
+                            placeholder="14000.00"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg 
+                                    focus:ring-2 focus:ring-[#8BB3FF] focus:border-[#8BB3FF] 
+                                    transition duration-150 @error('precio_venta') border-red-500 @enderror">
+                    @error('precio_venta')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                
+                {{-- CAMPO STOCK --}}
+                <div>
+                    <label for="stock" class="block text-sm font-medium text-gray-700 mb-1">Stock Inicial *</label>
+                    <input type="number" 
+                            name="stock" 
+                            id="stock" 
+                            value="{{ old('stock', 0) }}"
+                            required 
+                            min="0"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg 
+                                    focus:ring-2 focus:ring-[#8BB3FF] focus:border-[#8BB3FF] 
+                                    transition duration-150 @error('stock') border-red-500 @enderror">
+                    @error('stock')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
 
-        <label class="text-white">Stock</label>
-        <input type="number" name="stock"
-            class="w-full mt-1 mb-6 px-4 py-2 rounded-lg bg-white/20 text-white border border-white/20">
+            {{-- Fila 4: Descripción --}}
+            <div class="mb-5">
+                <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <textarea name="descripcion" 
+                          id="descripcion" 
+                          rows="3"
+                          placeholder="Detalles sobre el producto, presentación, calidad, etc."
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg 
+                                 focus:ring-2 focus:ring-[#8BB3FF] focus:border-[#8BB3FF] 
+                                 transition duration-150 @error('descripcion') border-red-500 @enderror">{{ old('descripcion') }}</textarea>
+                @error('descripcion')
+                    <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                @enderror
+            </div>
 
-        <div class="flex gap-4">
-            <button class="bg-purple-500 px-5 py-2 rounded-lg hover:bg-purple-600 text-white">Guardar</button>
-            <a href="{{ route('productos.index') }}" class="px-5 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white">Cancelar</a>
-        </div>
-    </form>
-
-</div>
+            {{-- Botones --}}
+            <div class="flex justify-end mt-8 pt-4 border-t border-gray-200">
+                
+                <a href="{{ route('productos.index') }}" 
+                   class="inline-flex items-center px-6 py-2.5 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg transition duration-150 mr-4">
+                    <i class="bi bi-x-circle mr-2"></i>
+                    Cancelar
+                </a>
+                
+                <button type="submit"
+                        class="inline-flex items-center px-6 py-2.5 bg-celeste-suave text-azul-profundo font-semibold text-base rounded-lg shadow-md hover:opacity-90 transition duration-150"
+                        style="background-color: #8BB3FF; color: #132A54;">
+                    <i class="bi bi-save mr-2"></i>
+                    Guardar Producto
+                </button>
+                
+            </div>
+            
+        </form>
+    </div>
 
 @endsection

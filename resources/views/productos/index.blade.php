@@ -4,107 +4,88 @@
 
 @section('content')
     
-    <h1 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-2">Gestión de Productos</h1>
+    <h1 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-2">
+        Gestión de Productos
+    </h1>
     
-    <div class="flex justify-between items-center mb-6">
-        
+    {{-- Botón para Crear Nuevo Producto --}}
+    <div class="mb-4 flex justify-end">
         <a href="{{ route('productos.create') }}" 
-           class="inline-flex items-center px-4 py-2 bg-celeste-suave text-azul-profundo font-semibold text-sm rounded-lg shadow-md hover:opacity-90 transition duration-150"
+           class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:opacity-90 active:opacity-75 focus:outline-none focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150"
            style="background-color: #8BB3FF; color: #132A54;">
-            <i class="bi bi-box-seam-fill mr-2"></i>
-            Registrar Nuevo Producto
+            <i class="bi bi-plus-circle mr-2"></i>
+            Crear Nuevo Producto
         </a>
-        
-        <form action="{{ route('productos.index') }}" method="GET" class="flex items-center">
-            <input type="text" 
-                   name="search" 
-                   placeholder="Buscar por nombre, SKU..." 
-                   value="{{ request('search') }}"
-                   class="px-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-[#8BB3FF] focus:border-[#8BB3FF] transition duration-150">
-            <button type="submit" 
-                    class="px-4 py-2 bg-gray-700 text-white rounded-r-lg hover:bg-gray-800 transition duration-150">
-                <i class="bi bi-search"></i>
-            </button>
-        </form>
     </div>
 
-    @if(session('success'))
+    @if (session('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
             <span class="block sm:inline">{{ session('success') }}</span>
         </div>
     @endif
 
-    <div class="bg-white shadow-xl rounded-xl overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+    {{-- Contenedor de la Tabla --}}
+    <div class="bg-white shadow-xl rounded-xl overflow-x-auto p-6">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Compra</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Venta</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
                 
-                <thead class="bg-gray-50">
+                {{-- BUCLE PARA MOSTRAR LOS DATOS --}}
+                @forelse ($productos as $producto)
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                    </tr>
-                </thead>
-                
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($productos as $producto)
-                    <tr class="hover:bg-gray-50 transition duration-100">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $producto->id }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $producto->nombre }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $producto->categoria->nombre }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-right text-green-700">${{ number_format($producto->precio, 2) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                            @if($producto->stock > 10)
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    {{ $producto->stock }}
-                                </span>
-                            @elseif($producto->stock > 0)
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                    {{ $producto->stock }}
-                                </span>
-                            @else
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                    Agotado
-                                </span>
-                            @endif
+                        
+                        {{-- Acceso a la relación Categoría (requiere with('categoria') en el controlador) --}}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $producto->categoria->nombre ?? 'N/A' }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            
-                            <a href="{{ route('productos.edit', $producto) }}" 
-                               class="text-amber-600 hover:text-amber-800 mx-1 px-2 py-1 rounded-md border border-amber-300 transition duration-150"
-                               title="Editar">
-                                <i class="bi bi-pencil-square"></i>
-                                Editar
-                            </a>
+                        
+                        {{-- Acceso a la relación Proveedor (requiere with('proveedor') en el controlador) --}}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $producto->proveedor->nombre ?? 'N/A' }}
+                        </td>
 
-                            <form action="{{ route('productos.destroy', $producto) }}" method="POST" class="inline-block ml-2">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${{ number_format($producto->precio_compra, 2) }}
+                        </td>
+                        
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${{ number_format($producto->precio_venta, 2) }}
+                        </td>
+                        
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $producto->stock }}</td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-center">
+                            {{-- Botones de acción (Editar y Eliminar) --}}
+                            <a href="{{ route('productos.edit', $producto->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Editar</a>
+                            
+                            <form action="{{ route('productos.destroy', $producto->id) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" 
-                                        class="text-red-600 hover:text-red-800 mx-1 px-2 py-1 rounded-md border border-red-300 transition duration-150"
-                                        onclick="return confirm('¿Estás seguro de que quieres eliminar el producto {{ $producto->nombre }}?')"
-                                        title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                    Eliminar
-                                </button>
+                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">Eliminar</button>
                             </form>
                         </td>
                     </tr>
-                    @empty
+                @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-500 italic">
-                            No se encontraron productos registrados.
-                            <a href="{{ route('productos.create') }}" class="text-indigo-600 hover:text-indigo-800 ml-1">Crea uno ahora.</a>
-                        </td>
+                        <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">No hay productos registrados.</td>
                     </tr>
-                    @endforelse
-                </tbody>
+                @endforelse
 
-            </table>
-        </div>
-        
-        {{-- Aquí se puede mostrar la paginación: {{ $productos->links() }} --}}
+            </tbody>
+        </table>
     </div>
 
 @endsection
