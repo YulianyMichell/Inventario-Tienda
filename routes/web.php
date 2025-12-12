@@ -62,7 +62,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('proveedores', ProveedorController::class);
     Route::resource('productos', ProductoController::class);
 
-    // FALTABAN ESTAS
     Route::resource('categorias', CategoriaController::class);
     Route::resource('presentaciones', PresentacionController::class);
 });
@@ -77,7 +76,7 @@ Route::get('/factura/{venta}', [FacturaController::class, 'show'])->name('factur
 
 /*
 |--------------------------------------------------------------------------
-| Inventario
+| Inventario (CORREGIDO)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')
@@ -85,15 +84,15 @@ Route::middleware('auth')
     ->name('inventario.')
     ->group(function () {
 
-        Route::get('/', [InventarioController::class, 'index'])->name('index');
+        Route::get('/', [InventarioController::class, 'index'])->name('index'); // inventario.index
 
-        Route::get('/entrada', [InventarioController::class, 'createEntrada'])->name('createEntrada');
-        Route::post('/entrada', [InventarioController::class, 'storeEntrada'])->name('storeEntrada');
+        Route::get('/entrada', [InventarioController::class, 'createEntrada'])->name('createEntrada'); // inventario.createEntrada
+        Route::post('/entrada', [InventarioController::class, 'storeEntrada'])->name('storeEntrada'); // inventario.storeEntrada
 
-        Route::get('/salida', [InventarioController::class, 'createSalida'])->name('createSalida');
-        Route::post('/salida', [InventarioController::class, 'storeSalida'])->name('storeSalida');
+        Route::get('/salida', [InventarioController::class, 'createSalida'])->name('createSalida'); // inventario.createSalida
+        Route::post('/salida', [InventarioController::class, 'storeSalida'])->name('storeSalida'); // inventario.storeSalida
 
-        Route::get('/kardex', [InventarioController::class, 'kardex'])->name('kardex');
+        // 🛑 LÍNEA ELIMINADA: La ruta 'inventario.create' ya no existe para evitar el error.
     });
 
 

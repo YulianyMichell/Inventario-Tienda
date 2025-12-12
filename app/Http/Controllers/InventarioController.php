@@ -14,25 +14,33 @@ class InventarioController extends Controller
     // -------------------------------------------
     public function index()
     {
-        $movimientos = Inventario::with('producto', 'usuario')->orderBy('created_at', 'desc')->get();
+        // 🛑 CORRECCIÓN CLAVE: Se usa paginate() en lugar de get()
+        // para que la vista pueda usar $inventarios->links()
+        $inventarios = Inventario::with('producto', 'user')
+                                 ->orderBy('created_at', 'desc')
+                                 ->paginate(15); // Muestra 15 registros por página
 
-        return view('inventario.index', compact('movimientos'));
+        return view('inventario.index', compact('inventarios'));
     }
+
+    // -------------------------------------------
     // Formulario para registrar una ENTRADA
-    
+    // -------------------------------------------
     public function createEntrada()
     {
         $productos = Producto::all();
         return view('inventario.createEntrada', compact('productos'));
     }
+
+    // -------------------------------------------
     // Guardar ENTRADA de inventario
-    
+    // -------------------------------------------
     public function storeEntrada(Request $request)
     {
         $request->validate([
-            'producto_id' => 'required',
+            'producto_id' => 'required|exists:productos,id',
             'cantidad'    => 'required|integer|min:1',
-            'descripcion' => 'nullable|string',
+            'descripcion' => 'nullable|string|max:255',
         ]);
 
         $producto = Producto::findOrFail($request->producto_id);
@@ -48,7 +56,8 @@ class InventarioController extends Controller
             'cantidad'      => $request->cantidad,
             'stock_anterior'=> $stock_anterior,
             'stock_actual'  => $stock_actual,
-            'fecha'         => now(),
+            // 'fecha' ya no es necesario si usas created_at, pero si existe en la BD:
+            // 'fecha'         => now(), 
             'descripcion'   => $request->descripcion
         ]);
 
@@ -57,25 +66,32 @@ class InventarioController extends Controller
 
         return redirect()->route('inventario.index')->with('success', 'Entrada registrada correctamente.');
     }
+
+    // -------------------------------------------
     // Formulario para registrar una SALIDA
+    // -------------------------------------------
     public function createSalida()
     {
         $productos = Producto::all();
         return view('inventario.createSalida', compact('productos'));
     }
+
+    // -------------------------------------------
     // Guardar SALIDA de inventario
-        public function storeSalida(Request $request)
+    // -------------------------------------------
+    public function storeSalida(Request $request)
     {
         $request->validate([
-            'producto_id' => 'required',
+            'producto_id' => 'required|exists:productos,id',
             'cantidad'    => 'required|integer|min:1',
-            'descripcion' => 'nullable|string',
+            'descripcion' => 'nullable|string|max:255',
         ]);
 
         $producto = Producto::findOrFail($request->producto_id);
 
+        // Validación para evitar stock negativo
         if ($request->cantidad > $producto->stock) {
-            return back()->with('error', 'La cantidad supera el stock disponible.');
+            return back()->withInput()->with('error', 'La cantidad supera el stock disponible.');
         }
 
         $stock_anterior = $producto->stock;
@@ -89,7 +105,8 @@ class InventarioController extends Controller
             'cantidad'      => $request->cantidad,
             'stock_anterior'=> $stock_anterior,
             'stock_actual'  => $stock_actual,
-            'fecha'         => now(),
+            // 'fecha' ya no es necesario si usas created_at, pero si existe en la BD:
+            // 'fecha'         => now(),
             'descripcion'   => $request->descripcion
         ]);
 
@@ -98,22 +115,26 @@ class InventarioController extends Controller
 
         return redirect()->route('inventario.index')->with('success', 'Salida registrada correctamente.');
     }
+    
+    // -------------------------------------------
+    // Función para el Kardex
+    // -------------------------------------------
     public function kardex(Request $request)
-{
-    $producto_id = $request->producto_id;
+    {
+        $producto_id = $request->producto_id;
+        $movimientos = []; // Inicializamos como vacío
 
-    // Si no escoge producto, no mostrar nada
-    $movimientos = [];
+        if ($producto_id) {
+            // Se usa with('user') para cargar el usuario
+            $movimientos = Inventario::where('producto_id', $producto_id)
+                ->with('user') 
+                ->orderBy('created_at', 'asc') // Ordenar por fecha de creación ascendente
+                ->get();
+        }
 
-    if ($producto_id) {
-        $movimientos = Inventario::where('producto_id', $producto_id)
-            ->orderBy('fecha', 'asc')
-            ->get();
+        $productos = Producto::all();
+
+        return view('inventario.kardex', compact('movimientos', 'productos', 'producto_id')); // También pasamos producto_id para preseleccionar
     }
-
-    $productos = Producto::all();
-
-    return view('inventario.kardex', compact('movimientos', 'productos'));
-}
 
 }
