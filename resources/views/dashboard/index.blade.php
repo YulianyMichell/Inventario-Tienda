@@ -7,8 +7,7 @@
 <h1 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-2">Dashboard</h1>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-
-    {{-- Clientes --}}
+    
     <div class="bg-celeste-suave text-azul-profundo p-6 rounded-lg shadow-xl transform transition duration-300 hover:scale-[1.02] flex flex-col items-center"
          style="background-color: #8BB3FF; color: #132A54;">
         <i class="bi bi-people text-4xl mb-2"></i>
@@ -16,21 +15,18 @@
         <p class="text-4xl font-extrabold">{{ $clientes }}</p>
     </div>
 
-    {{-- Productos --}}
     <div class="bg-[#132A54] text-white p-6 rounded-lg shadow-xl transform transition duration-300 hover:scale-[1.02] flex flex-col items-center">
          <i class="bi bi-box-seam text-4xl mb-2"></i>
         <h3 class="text-xl font-bold">Productos</h3>
         <p class="text-4xl font-extrabold">{{ $totalProductos }}</p>
     </div>
 
-    {{-- Stock bajo --}}
     <div class="bg-[#132A54] text-white p-6 rounded-lg shadow-xl transform transition duration-300 hover:scale-[1.02] flex flex-col items-center">
         <i class="bi bi-exclamation-triangle text-4xl mb-2"></i>
         <h3 class="text-xl font-bold">Stock Bajo</h3>
         <p class="text-4xl font-extrabold">{{ $stockBajo }}</p>
     </div>
 
-    {{-- Ventas hoy --}}
     <div class="bg-[#132A54] text-white p-6 rounded-lg shadow-xl transform transition duration-300 hover:scale-[1.02] flex flex-col items-center">
         <i class="bi bi-currency-dollar text-4xl mb-2"></i>
         <h3 class="text-xl font-bold">Ventas Hoy</h3>
@@ -39,19 +35,16 @@
 
 </div> 
 
-{{-- Gráficos --}}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-    {{-- Productos más vendidos --}}
+    
     <div class="bg-white p-6 rounded-xl shadow-lg">
-        <h2 class="text-xl font-semibold mb-4 text-gray-800">Productos Más Vendidos</h2>
-        <canvas id="productosChart" class="h-64 w-full"></canvas>
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Productos con Más Movimientos</h2>
+        <canvas id="productosChart" class="h-64"></canvas>
     </div>
 
-    {{-- Ventas últimos 7 días --}}
     <div class="bg-white p-6 rounded-xl shadow-lg">
-        <h2 class="text-xl font-semibold mb-4 text-gray-800">Ventas Últimos 7 Días</h2>
-        <canvas id="ventasChart" class="h-64 w-full"></canvas>
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Entradas y Salidas por Día</h2>
+        <canvas id="ventasChart" class="h-64"></canvas>
     </div>
 
 </div>

@@ -5,14 +5,55 @@
 @section('content')
 <h1 class="text-3xl font-bold mb-6">Factura #{{ $venta->id }}</h1>
 
-<p><strong>Cliente:</strong> {{ $venta->cliente->nombre }}</p>
-<p><strong>Fecha:</strong> {{ $venta->fecha->format('d/m/Y H:i') }}</p>
-<p><strong>Total:</strong> ${{ number_format($venta->total, 2) }}</p>
+<a href="{{ route('factura.index') }}"
+   class="bg-gray-700 hover:bg-gray-900 text-white px-4 py-2 rounded-lg mb-6 inline-block">
+    Volver
+</a>
 
-<h2 class="mt-6 font-semibold">Productos:</h2>
-<ul class="list-disc list-inside">
-    @foreach($venta->detalles as $detalle)
-        <li>{{ $detalle->producto->nombre }} x {{ $detalle->cantidad }} ({{ number_format($detalle->precio, 2) }})</li>
-    @endforeach
-</ul>
+<!-- Información del cliente -->
+<div class="bg-white shadow-lg rounded-xl p-6 mb-6 border border-gray-200">
+    <h2 class="text-xl font-semibold mb-4">Información del Cliente</h2>
+
+    <p><strong>Cliente:</strong> {{ $venta->cliente->nombre }}</p>
+    <p><strong>Correo:</strong> {{ $venta->cliente->email ?? 'N/A' }}</p>
+    <p><strong>Teléfono:</strong> {{ $venta->cliente->telefono ?? 'N/A' }}</p>
+    <p><strong>Fecha:</strong> {{ $venta->fecha->format('d/m/Y H:i') }}</p>
+</div>
+
+<!-- Detalles de la factura -->
+<div class="bg-white shadow-lg rounded-xl p-6 border border-gray-200 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Detalles de la Venta</h2>
+
+    <table class="w-full border-collapse">
+        <thead>
+            <tr class="bg-gray-100 text-left">
+                <th class="border p-3">Producto</th>
+                <th class="border p-3">Cantidad</th>
+                <th class="border p-3">Precio</th>
+                <th class="border p-3">Subtotal</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach($venta->detalles as $item)
+            <tr class="border-b hover:bg-gray-50">
+                <td class="border p-3">{{ $item->producto->nombre }}</td>
+                <td class="border p-3">{{ $item->cantidad }}</td>
+                <td class="border p-3">${{ number_format($item->precio, 2) }}</td>
+                <td class="border p-3">
+                    ${{ number_format($item->cantidad * $item->precio, 2) }}
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+
+<!-- Total -->
+<div class="bg-white shadow-lg rounded-xl p-6 border border-gray-200 text-right">
+    <h2 class="text-2xl font-bold">
+        Total: ${{ number_format($venta->total, 2) }}
+    </h2>
+</div>
+
 @endsection
