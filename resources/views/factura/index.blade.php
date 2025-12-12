@@ -1,31 +1,55 @@
-<h2>Factura #{{ $venta->id }}</h2>
+@extends('layouts.app')
 
-<p><strong>Cliente:</strong> {{ $venta->cliente->nombre }}</p>
-<p><strong>Fecha:</strong> {{ $venta->created_at->format('d/m/Y') }}</p>
+@section('content')
+<div class="max-w-5xl mx-auto p-6">
 
-<table border="1" width="100%">
-    <thead>
-        <tr>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Precio</th>
-            <th>Subtotal</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($venta->detalles as $item)
-        <tr>
-            <td>{{ $item->producto->nombre }}</td>
-            <td>{{ $item->cantidad }}</td>
-            <td>${{ $item->precio }}</td>
-            <td>${{ $item->cantidad * $item->precio }}</td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
+    <h1 class="text-3xl font-bold mb-6">Lista de Facturas</h1>
 
-<h3>Total: ${{ $venta->total }}</h3>
+    <div class="bg-white shadow-lg rounded-xl p-6 border border-gray-200">
 
-<br><br>
-<p>___________</p>
-<p>Firma</p>
+        <table class="w-full border-collapse">
+            <thead>
+                <tr class="bg-gray-100 text-left">
+                    <th class="border p-3">ID</th>
+                    <th class="border p-3">Cliente</th>
+                    <th class="border p-3">Fecha</th>
+                    <th class="border p-3">Total</th>
+                    <th class="border p-3">Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach($ventas as $venta)
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="border p-3">{{ $venta->id }}</td>
+
+                    <td class="border p-3">
+                        {{ $venta->cliente->nombre ?? 'Sin cliente' }}
+                    </td>
+
+                    <td class="border p-3">
+                        {{ $venta->fecha
+                            ? \Carbon\Carbon::parse($venta->fecha)->format('d/m/Y')
+                            : $venta->created_at->format('d/m/Y') }}
+                    </td>
+
+                    <td class="border p-3">
+                        ${{ number_format($venta->total, 2) }}
+                    </td>
+
+                    <td class="border p-3">
+                        <a href="{{ route('factura.show', $venta->id) }}"
+                           class="bg-blue-600 hover:bg-blue-800 text-white px-3 py-2 rounded-lg">
+                            Ver factura
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+@endsection
