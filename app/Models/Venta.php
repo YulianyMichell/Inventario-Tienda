@@ -16,6 +16,11 @@ class Venta extends Model
         'total'
     ];
 
+    // Convertir 'fecha' a objeto Carbon automáticamente
+    protected $casts = [
+        'fecha' => 'datetime',
+    ];
+
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
@@ -30,5 +35,4 @@ class Venta extends Model
     {
         return $this->hasMany(VentaDetalle::class);
     }
-   
 }

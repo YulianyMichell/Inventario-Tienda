@@ -9,10 +9,13 @@ use Illuminate\Support\Facades\Auth;
 
 class InventarioController extends Controller
 {
-    // Listar inventario
+    // Listar inventario con paginación
     public function index()
     {
-        $inventarios = Inventario::with('producto')->get();
+        $inventarios = Inventario::with('producto', 'user')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15); // Paginación de 15 por página
+
         return view('inventario.index', compact('inventarios'));
     }
 
@@ -38,11 +41,11 @@ class InventarioController extends Controller
         // Obtener stock anterior
         $stock_anterior = $producto->stock ?? 0;
 
-        // Calcular stock actual
+        // Calcular stock actual según tipo
         $stock_actual = $stock_anterior;
-        if ($request->tipo == 'compra') {
+        if ($request->tipo === 'compra') {
             $stock_actual += $request->cantidad;
-        } elseif ($request->tipo == 'venta') {
+        } elseif ($request->tipo === 'venta') {
             $stock_actual -= $request->cantidad;
         }
 
@@ -87,9 +90,9 @@ class InventarioController extends Controller
         // Ajustar stock
         $stock_anterior = $inventario->stock_anterior;
         $stock_actual = $stock_anterior;
-        if ($request->tipo == 'compra') {
+        if ($request->tipo === 'compra') {
             $stock_actual += $request->cantidad;
-        } elseif ($request->tipo == 'venta') {
+        } elseif ($request->tipo === 'venta') {
             $stock_actual -= $request->cantidad;
         }
 
