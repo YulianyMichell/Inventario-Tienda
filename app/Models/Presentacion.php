@@ -4,33 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Presentacion extends Model
 {
     use HasFactory;
-    
-    // 💡 SOLUCIÓN: Definir explícitamente el nombre de la tabla
-    protected $table = 'presentaciones'; 
 
-    /**
-     * Los atributos que son asignables en masa.
-     * ...
-     * @var array<int, string>
-     */
+    // Aquí se indica la tabla real en la base de datos
+    protected $table = 'presentaciones';
+
+    // Si quieres asignación masiva
     protected $fillable = [
-        'producto_id',   // Clave foránea al producto asociado
-        // ...
+        'producto_id',
+        'nombre',
+        'precio_venta',
+        'cantidad_base'
     ];
 
-    /**
-     * Define la relación inversa: Una Presentación pertenece a un único Producto.
-     * ...
-     * @return BelongsTo
-     */
-    public function producto(): BelongsTo
+    public function producto()
     {
         return $this->belongsTo(Producto::class);
     }
-    // ...
 }

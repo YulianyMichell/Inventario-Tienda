@@ -58,7 +58,8 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('productos', ProductoController::class);
     Route::resource('categorias', CategoriaController::class);
-    Route::resource('presentaciones', PresentacionController::class);
+    Route::resource('presentaciones', PresentacionController::class)
+        ->parameters(['presentaciones' => 'presentacion']); // <--- AÑADE ESTO
 });
 
 Route::middleware('auth')

@@ -7,27 +7,57 @@ use App\Models\VentaDetalle;
 use App\Models\Producto;
 use App\Models\Cliente;
 use App\Models\Inventario;
+use App\Models\Presentacion;
 use Illuminate\Http\Request;
 
 class VentaController extends Controller
 {
-    // Mostrar listado de ventas
-    public function index()
+    /**
+     * Muestra listado de ventas.
+     * Incluye Eager Loading, Búsqueda y Paginación para optimización.
+     */
+    public function index(Request $request)
     {
-        // Traemos cliente y detalles con producto
-        $ventas = Venta::with(['cliente', 'detalles.producto'])->orderBy('fecha', 'desc')->get();
+        // Eager Loading Optimizado:
+        // Cargamos 'detalles.presentacion', 'cliente' y 'detalles.producto'.
+        $query = Venta::with([
+            'cliente', 
+            'detalles.producto', 
+            'detalles.presentacion'
+        ])->orderBy('fecha', 'desc');
+
+        // Lógica de Búsqueda (por ID de venta o nombre de cliente)
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            
+            $query->where('id', $search) // Buscar por ID de Venta
+                  ->orWhereHas('cliente', function ($q) use ($search) {
+                      // Buscar por nombre del cliente
+                      $q->where('nombre', 'like', '%' . $search . '%');
+                  });
+        }
+
+        // Paginación para un mejor rendimiento
+        $ventas = $query->paginate(15); 
+        
         return view('ventas.index', compact('ventas'));
     }
 
-    // Mostrar formulario para crear venta
+    /**
+     * Muestra formulario para crear venta.
+     */
     public function create()
     {
-        $productos = Producto::all();
+        // CORRECCIÓN APLICADA: Cargar productos con sus presentaciones (Eager Loading)
+        $productos = Producto::with('presentaciones')->get();
         $clientes = Cliente::all();
+        
         return view('ventas.create', compact('productos', 'clientes'));
     }
 
-    // Guardar la venta
+    /**
+     * Guarda la venta y sus detalles, actualizando el stock e inventario.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -35,17 +65,18 @@ class VentaController extends Controller
             'productos' => 'required|array|min:1',
             'productos.*.id' => 'required|exists:productos,id',
             'productos.*.cantidad' => 'required|integer|min:1',
+            'productos.*.presentacion_id' => 'required|exists:presentaciones,id', // Se requiere el ID de la Presentación
         ]);
 
-        // Validar stock disponible
+        // 1. Validar stock disponible (validación simple contra stock de Producto)
         foreach ($request->productos as $prod) {
             $producto = Producto::find($prod['id']);
             if ($producto->stock < $prod['cantidad']) {
-                return back()->with('error', 'No hay stock suficiente de: ' . $producto->nombre);
+                 return back()->with('error', 'No hay stock suficiente de: ' . $producto->nombre);
             }
         }
 
-        // Crear venta
+        // 2. Crear venta
         $venta = Venta::create([
             'cliente_id' => $request->cliente_id,
             'user_id' => auth()->id(),
@@ -55,23 +86,28 @@ class VentaController extends Controller
 
         $total = 0;
 
-        // Crear detalles y actualizar stock
+        // 3. Crear detalles y actualizar stock
         foreach ($request->productos as $prod) {
             $producto = Producto::find($prod['id']);
-            $precio = $producto->precio_venta; // Asegúrate de que tu tabla tiene esta columna
+            $presentacion = Presentacion::find($prod['presentacion_id']);
+            
+            // Obtener precio de la Presentación
+            $precio = $presentacion->precio_venta; 
             $cantidad = $prod['cantidad'];
             $subtotal = $precio * $cantidad;
 
             VentaDetalle::create([
                 'venta_id' => $venta->id,
                 'producto_id' => $producto->id,
+                'presentacion_id' => $presentacion->id, // Guardar el ID de Presentación
                 'cantidad' => $cantidad,
                 'precio' => $precio,
                 'subtotal' => $subtotal,
             ]);
 
+            // Restar stock y registrar movimiento de inventario
             $stockAnterior = $producto->stock;
-            $producto->stock -= $cantidad;
+            $producto->stock -= $cantidad; // Resta asumiendo que es en unidades base
             $producto->save();
             $stockActual = $producto->stock;
 
@@ -89,35 +125,42 @@ class VentaController extends Controller
             $total += $subtotal;
         }
 
-        // Actualizar total
+        // 4. Actualizar total
         $venta->update(['total' => $total]);
 
         return redirect()->route('ventas.index')->with('success', 'Venta creada correctamente.');
     }
 
-    // Eliminar venta y restaurar stock
+    /**
+     * Elimina venta y restaura stock.
+     */
     public function destroy(Venta $venta)
     {
+        $venta->load('detalles.producto'); // Aseguramos que los productos estén cargados
+
         foreach ($venta->detalles as $detalle) {
-            $producto = $detalle->producto;
+            // Asegurarse de que $detalle->producto exista antes de manipular stock
+            if ($detalle->producto) {
+                $producto = $detalle->producto;
 
-            // Restaurar stock
-            $stockAnterior = $producto->stock;
-            $producto->stock += $detalle->cantidad;
-            $producto->save();
-            $stockActual = $producto->stock;
+                // Restaurar stock
+                $stockAnterior = $producto->stock;
+                $producto->stock += $detalle->cantidad;
+                $producto->save();
+                $stockActual = $producto->stock;
 
-            // Registrar entrada en inventario
-            Inventario::create([
-                'producto_id' => $producto->id,
-                'user_id' => auth()->id(),
-                'tipo' => 'entrada',
-                'cantidad' => $detalle->cantidad,
-                'stock_anterior' => $stockAnterior,
-                'stock_actual' => $stockActual,
-                'fecha' => now(),
-                'descripcion' => 'Restauración por eliminación de venta #' . $venta->id,
-            ]);
+                // Registrar entrada en inventario por restauración
+                Inventario::create([
+                    'producto_id' => $producto->id,
+                    'user_id' => auth()->id(),
+                    'tipo' => 'entrada',
+                    'cantidad' => $detalle->cantidad,
+                    'stock_anterior' => $stockAnterior,
+                    'stock_actual' => $stockActual,
+                    'fecha' => now(),
+                    'descripcion' => 'Restauración por eliminación de venta #' . $venta->id,
+                ]);
+            }
         }
 
         // Eliminar detalles y venta

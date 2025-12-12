@@ -46,6 +46,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Presentación</th> {{-- <-- NUEVA COLUMNA --}}
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
                     </tr>
@@ -80,9 +81,41 @@
 
 {{-- Script para agregar productos dinámicamente --}}
 <script>
-    const productos = @json($productos);
+    // Se asume que $productos ahora tiene la relación 'presentaciones' cargada
+    const productosData = @json($productos);
     const tabla = document.querySelector('#tabla-productos tbody');
     let index = 0;
+
+    /**
+     * Función que actualiza el select de Presentaciones
+     * basado en el ID del Producto seleccionado.
+     */
+    function actualizarPresentaciones(productoSelect) {
+        const productoId = productoSelect.value;
+        const rowIndex = productoSelect.name.match(/\[(\d+)\]/)[1];
+        const presentacionSelect = document.querySelector(`select[name="productos[${rowIndex}][presentacion_id]"]`);
+        
+        // Si no hay producto seleccionado, limpiar y deshabilitar
+        if (!productoId) {
+            presentacionSelect.innerHTML = '<option value="">-- Seleccione Presentación --</option>';
+            presentacionSelect.disabled = true;
+            return;
+        }
+
+        const producto = productosData.find(p => p.id == productoId);
+        
+        let optionsHtml = '<option value="">-- Seleccione Presentación --</option>';
+        if (producto && producto.presentaciones) {
+            optionsHtml += producto.presentaciones.map(p => 
+                `<option value="${p.id}" data-precio="${p.precio_venta}">
+                    ${p.nombre} (P: $${p.precio_venta})
+                </option>`
+            ).join('');
+        }
+        
+        presentacionSelect.innerHTML = optionsHtml;
+        presentacionSelect.disabled = false;
+    }
 
     document.getElementById('agregar-producto').addEventListener('click', () => {
         const row = document.createElement('tr');
@@ -90,15 +123,23 @@
         row.innerHTML = `
             <td class="px-4 py-2">
                 <select name="productos[${index}][id]" required
-                        class="w-full px-2 py-1 border border-gray-300 rounded-lg">
-                    <option value="">-- Seleccione Producto --</option>
-                    ${productos.map(p => `<option value="${p.id}">${p.nombre} (Stock: ${p.stock})</option>`).join('')}
+                        class="w-full px-2 py-1 border border-gray-300 rounded-lg"
+                        onchange="actualizarPresentaciones(this)"> <option value="">-- Seleccione Producto --</option>
+                    ${productosData.map(p => `<option value="${p.id}">${p.nombre} (Stock: ${p.stock})</option>`).join('')}
                 </select>
             </td>
+            
+            <td class="px-4 py-2"> <select name="productos[${index}][presentacion_id]" required disabled
+                        class="w-full px-2 py-1 border border-gray-300 rounded-lg">
+                    <option value="">-- Seleccione Presentación --</option>
+                </select>
+            </td>
+
             <td class="px-4 py-2">
                 <input type="number" name="productos[${index}][cantidad]" min="1" value="1" required
-                       class="w-full px-2 py-1 border border-gray-300 rounded-lg">
+                        class="w-full px-2 py-1 border border-gray-300 rounded-lg">
             </td>
+            
             <td class="px-4 py-2">
                 <button type="button" class="text-red-600 hover:text-red-800 font-semibold" onclick="this.closest('tr').remove()">Eliminar</button>
             </td>

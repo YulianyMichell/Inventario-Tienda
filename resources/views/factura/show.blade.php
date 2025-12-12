@@ -10,7 +10,11 @@
     Volver
 </a>
 
-<!-- Información del cliente -->
+<a href="{{ route('factura.descargar', $venta) }}"
+   class="bg-red-600 hover:bg-red-800 text-white px-4 py-2 rounded-lg mb-6 ml-4 inline-block">
+    <i class="bi bi-file-earmark-pdf-fill mr-1"></i> Descargar PDF
+</a>
+
 <div class="bg-white shadow-lg rounded-xl p-6 mb-6 border border-gray-200">
     <h2 class="text-xl font-semibold mb-4">Información del Cliente</h2>
 
@@ -20,7 +24,6 @@
     <p><strong>Fecha:</strong> {{ $venta->fecha->format('d/m/Y H:i') }}</p>
 </div>
 
-<!-- Detalles de la factura -->
 <div class="bg-white shadow-lg rounded-xl p-6 border border-gray-200 mb-6">
     <h2 class="text-xl font-semibold mb-4">Detalles de la Venta</h2>
 
@@ -29,7 +32,7 @@
             <tr class="bg-gray-100 text-left">
                 <th class="border p-3">Producto</th>
                 <th class="border p-3">Cantidad</th>
-                <th class="border p-3">Precio</th>
+                <th class="border p-3">Precio Unitario</th>
                 <th class="border p-3">Subtotal</th>
             </tr>
         </thead>
@@ -37,7 +40,12 @@
         <tbody>
             @foreach($venta->detalles as $item)
             <tr class="border-b hover:bg-gray-50">
-                <td class="border p-3">{{ $item->producto->nombre }}</td>
+                <td class="border p-3">
+                    {{ $item->producto->nombre }}
+                    <br>
+                    {{-- AÑADIDO: Muestra el nombre de la presentación --}}
+                    <span class="text-sm text-gray-500">({{ $item->presentacion->nombre ?? 'Unidad Base' }})</span>
+                </td>
                 <td class="border p-3">{{ $item->cantidad }}</td>
                 <td class="border p-3">${{ number_format($item->precio, 2) }}</td>
                 <td class="border p-3">
@@ -49,7 +57,6 @@
     </table>
 </div>
 
-<!-- Total -->
 <div class="bg-white shadow-lg rounded-xl p-6 border border-gray-200 text-right">
     <h2 class="text-2xl font-bold">
         Total: ${{ number_format($venta->total, 2) }}

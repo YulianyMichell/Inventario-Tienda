@@ -42,11 +42,15 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre del Producto</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Compra</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Venta</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                        
+                        {{-- COLUMNAS ELIMINADAS: Precio Compra, Precio Venta (Se gestionan en Presentaciones) --}}
+                        
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precios (Rango)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Total</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Presentaciones</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
@@ -56,18 +60,42 @@
                     <tr class="hover:bg-gray-50 transition duration-100">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $prod->id }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $prod->nombre }}</td>
+                        <td class="px-6 py-4 whitespace-normal text-sm text-gray-600 max-w-xs">{{ Str::limit($prod->descripcion, 50) }}</td> 
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $prod->categoria->nombre ?? 'N/A' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $prod->proveedor->nombre ?? 'N/A' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ number_format($prod->precio_compra, 2) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ number_format($prod->precio_venta, 2) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $prod->stock }}</td>
+                        
+                        {{-- NUEVA COLUMNA: RANGO DE PRECIOS DE PRESENTACIONES --}}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                            @php
+                                $minPrice = $prod->presentaciones->min('precio_venta');
+                                $maxPrice = $prod->presentaciones->max('precio_venta');
+                            @endphp
+                            @if ($minPrice === $maxPrice)
+                                ${{ number_format($minPrice, 2) }}
+                            @else
+                                ${{ number_format($minPrice, 2) }} - ${{ number_format($maxPrice, 2) }}
+                            @endif
+                        </td>
+
+                        {{-- COLUMNA STOCK TOTAL (usando el campo existente, asumiendo que contiene el stock consolidado) --}}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $prod->stock }}</td> 
+                        
+                        {{-- NUEVA COLUMNA: ENLACE A PRESENTACIONES --}}
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <a href="{{ route('presentaciones.index', ['producto_id' => $prod->id]) }}" 
+                               class="text-blue-600 hover:text-blue-800 mx-1 px-2 py-1 rounded-md border border-blue-300 transition duration-150"
+                               title="Ver Presentaciones">
+                                <i class="bi bi-box-seam"></i> ({{ $prod->presentaciones->count() }})
+                            </a>
+                        </td>
+
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                             
                             <a href="{{ route('productos.edit', $prod) }}" 
                                class="text-amber-600 hover:text-amber-800 mx-1 px-2 py-1 rounded-md border border-amber-300 transition duration-150"
                                title="Editar">
-                                <i class="bi bi-pencil-square"></i>
-                                Editar
+                                 <i class="bi bi-pencil-square"></i>
+                                 Editar
                             </a>
 
                             <form action="{{ route('productos.destroy', $prod) }}" method="POST" class="inline-block ml-2">
@@ -77,8 +105,8 @@
                                         class="text-red-600 hover:text-red-800 mx-1 px-2 py-1 rounded-md border border-red-300 transition duration-150"
                                         onclick="return confirm('¿Estás seguro de que quieres eliminar el producto {{ $prod->nombre }}?')"
                                         title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                    Eliminar
+                                     <i class="bi bi-trash"></i>
+                                     Eliminar
                                 </button>
                             </form>
 
@@ -86,7 +114,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-4 text-center text-gray-500 italic">
+                        <td colspan="9" class="px-6 py-4 text-center text-gray-500 italic"> 
                             No se encontraron productos registrados.
                             <a href="{{ route('productos.create') }}" class="text-indigo-600 hover:text-indigo-800 ml-1">Crea uno ahora.</a>
                         </td>
@@ -100,7 +128,7 @@
         {{-- Paginación opcional --}}
         {{-- @if($productos->hasPages())
         <div class="px-6 py-4 bg-gray-50">
-             {{ $productos->links() }}
+              {{ $productos->links() }}
         </div>
         @endif --}}
     </div>

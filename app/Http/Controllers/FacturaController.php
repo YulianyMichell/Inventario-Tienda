@@ -9,11 +9,16 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class FacturaController extends Controller
 {
     /**
-     * Mostrar listado de facturas.
+     * Mostrar listado de facturas (basado en Ventas).
      */
     public function index()
     {
-        $ventas = Venta::with('cliente')->orderBy('created_at', 'desc')->paginate(15);
+        // Eager Loading: Solo necesitamos el cliente para el índice
+        $ventas = Venta::with('cliente')
+                        ->orderBy('created_at', 'desc')
+                        ->paginate(15);
+        
+        // NOTA: Revisa si tu carpeta de vistas es 'factura' o 'facturas'
         return view('factura.index', compact('ventas'));
     }
 
@@ -22,7 +27,14 @@ class FacturaController extends Controller
      */
     public function show(Venta $venta)
     {
-        $venta->load('cliente', 'detalles.producto'); // Cargar detalles y productos relacionados
+        // Eager Loading completo para el detalle: Cliente, Producto, y Presentación.
+        $venta->load([
+            'cliente', 
+            'detalles.producto',
+            'detalles.presentacion' // <-- AÑADIDO: Cargar la relación Presentacion
+        ]); 
+        
+        // NOTA: Revisa si tu carpeta de vistas es 'factura' o 'facturas'
         return view('factura.show', compact('venta'));
     }
 
@@ -31,7 +43,12 @@ class FacturaController extends Controller
      */
     public function descargar(Venta $venta)
     {
-        $venta->load('cliente', 'detalles.producto');
+        // Eager Loading completo para el PDF
+        $venta->load([
+            'cliente', 
+            'detalles.producto',
+            'detalles.presentacion' // <-- AÑADIDO: Cargar la relación Presentacion
+        ]);
 
         $pdf = Pdf::loadView('factura.pdf', compact('venta'));
         return $pdf->download('Factura_'.$venta->id.'.pdf');

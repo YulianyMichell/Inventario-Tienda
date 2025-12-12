@@ -9,13 +9,36 @@ use Illuminate\Http\Request;
 
 class ProductoController extends Controller
 {
-    public function index()
+    /**
+     * Muestra una lista del recurso.
+     * Carga las relaciones (incluyendo 'presentaciones') y maneja la búsqueda.
+     */
+    public function index(Request $request)
     {
-        // Se mantiene la carga con las relaciones para el listado
-        $productos = Producto::with('categoria', 'proveedor')->get();
+        // 1. Eager Loading: Carga 'presentaciones' para calcular el rango de precios en la vista
+        // y carga 'categoria' y 'proveedor' para evitar consultas N+1.
+        $query = Producto::with('categoria', 'proveedor', 'presentaciones');
+
+        // 2. Manejo de la búsqueda
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+
+            $query->where(function ($q) use ($search) {
+                // Búsqueda por nombre o ID
+                $q->where('nombre', 'like', '%' . $search . '%')
+                  ->orWhere('id', $search);
+            });
+        }
+
+        // Obtener los resultados
+        $productos = $query->get();
+        
         return view('productos.index', compact('productos'));
     }
 
+    /**
+     * Muestra el formulario para crear un nuevo recurso.
+     */
     public function create()
     {
         $categorias = Categoria::all();
@@ -24,6 +47,9 @@ class ProductoController extends Controller
         return view('productos.create', compact('categorias', 'proveedores'));
     }
 
+    /**
+     * Almacena un recurso recién creado en el almacenamiento.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -31,27 +57,23 @@ class ProductoController extends Controller
             'categoria_id' => 'required|exists:categorias,id',
             'proveedor_id' => 'required|exists:proveedores,id',
             
-            // 💡 CAMPOS NUEVOS AGREGADOS: precio_compra, precio_venta, descripcion
-            'precio_compra' => 'required|numeric|min:0', // Precio que te cuesta a ti
-            'precio_venta' => 'required|numeric|min:0',  // Precio de venta al público
-            'descripcion' => 'nullable|string|max:1000', // Campo de texto opcional
+            // Campos que deberían eliminarse del producto principal
+            // y gestionarse en Presentacion si usas la lógica de rangos:
+            'precio_compra' => 'required|numeric|min:0', 
+            'precio_venta' => 'required|numeric|min:0', 
             
+            'descripcion' => 'nullable|string|max:1000', 
             'stock' => 'required|integer|min:0',
-            
-            // Campos que eliminaste en la vista pero mantenías en la validación anterior,
-            // si solo usas precio_venta/compra, estos ya no son necesarios:
-            // 'precio_carton' => 'nullable|numeric|min:0',
-            // 'precio_unidad' => 'nullable|numeric|min:0',
-            
         ]);
         
-        // El Producto::create() funcionará porque $request->all() solo contiene los campos
-        // que fueron validados (siempre y cuando estén en el $fillable del modelo Producto)
         Producto::create($request->all());
 
         return redirect()->route('productos.index')->with('success', 'Producto creado correctamente');
     }
 
+    /**
+     * Muestra el formulario para editar el recurso especificado.
+     */
     public function edit(Producto $producto)
     {
         $categorias = Categoria::all();
@@ -60,6 +82,9 @@ class ProductoController extends Controller
         return view('productos.edit', compact('producto', 'categorias', 'proveedores'));
     }
 
+    /**
+     * Actualiza el recurso especificado en el almacenamiento.
+     */
     public function update(Request $request, Producto $producto)
     {
         $request->validate([
@@ -67,24 +92,21 @@ class ProductoController extends Controller
             'categoria_id' => 'required|exists:categorias,id',
             'proveedor_id' => 'required|exists:proveedores,id',
 
-            // 💡 CAMPOS NUEVOS AGREGADOS: precio_compra, precio_venta, descripcion
             'precio_compra' => 'required|numeric|min:0', 
-            'precio_venta' => 'required|numeric|min:0',  
+            'precio_venta' => 'required|numeric|min:0', 
             'descripcion' => 'nullable|string|max:1000',
 
             'stock' => 'required|integer|min:0',
-            
-            // 'precio_carton' => 'nullable|numeric|min:0',
-            // 'precio_unidad' => 'nullable|numeric|min:0',
-
         ]);
 
-        // El $producto->update() usará los campos validados
         $producto->update($request->all());
 
         return redirect()->route('productos.index')->with('success', 'Producto actualizado correctamente');
     }
 
+    /**
+     * Elimina el recurso especificado del almacenamiento.
+     */
     public function destroy(Producto $producto)
     {
         $producto->delete();
