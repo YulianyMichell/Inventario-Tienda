@@ -10,34 +10,30 @@ use Illuminate\Http\Request;
 class ProductoController extends Controller
 {
     /**
-     * Muestra una lista del recurso.
-     * Carga las relaciones (incluyendo 'presentaciones') y maneja la búsqueda.
+     * Muestra la lista de productos con sus relaciones,
+     * incluyendo presentaciones para calcular rangos de precios.
      */
     public function index(Request $request)
     {
-        // 1. Eager Loading: Carga 'presentaciones' para calcular el rango de precios en la vista
-        // y carga 'categoria' y 'proveedor' para evitar consultas N+1.
         $query = Producto::with('categoria', 'proveedor', 'presentaciones');
 
-        // 2. Manejo de la búsqueda
+        // Búsqueda por nombre o ID
         if ($request->filled('search')) {
             $search = $request->input('search');
 
             $query->where(function ($q) use ($search) {
-                // Búsqueda por nombre o ID
                 $q->where('nombre', 'like', '%' . $search . '%')
                   ->orWhere('id', $search);
             });
         }
 
-        // Obtener los resultados
         $productos = $query->get();
         
         return view('productos.index', compact('productos'));
     }
 
     /**
-     * Muestra el formulario para crear un nuevo recurso.
+     * Formulario de creación.
      */
     public function create()
     {
@@ -48,7 +44,8 @@ class ProductoController extends Controller
     }
 
     /**
-     * Almacena un recurso recién creado en el almacenamiento.
+     * Guarda un nuevo producto.
+     * Los precios NO se guardan aquí (se manejan en Presentaciones).
      */
     public function store(Request $request)
     {
@@ -56,23 +53,18 @@ class ProductoController extends Controller
             'nombre' => 'required|string|max:255',
             'categoria_id' => 'required|exists:categorias,id',
             'proveedor_id' => 'required|exists:proveedores,id',
-            
-            // Campos que deberían eliminarse del producto principal
-            // y gestionarse en Presentacion si usas la lógica de rangos:
-            'precio_compra' => 'required|numeric|min:0', 
-            'precio_venta' => 'required|numeric|min:0', 
-            
-            'descripcion' => 'nullable|string|max:1000', 
+            'descripcion' => 'nullable|string|max:1000',
             'stock' => 'required|integer|min:0',
         ]);
         
         Producto::create($request->all());
 
-        return redirect()->route('productos.index')->with('success', 'Producto creado correctamente');
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto creado correctamente');
     }
 
     /**
-     * Muestra el formulario para editar el recurso especificado.
+     * Formulario de edición.
      */
     public function edit(Producto $producto)
     {
@@ -83,7 +75,8 @@ class ProductoController extends Controller
     }
 
     /**
-     * Actualiza el recurso especificado en el almacenamiento.
+     * Actualiza el producto.
+     * Los precios NO se manejan aquí.
      */
     public function update(Request $request, Producto $producto)
     {
@@ -91,26 +84,24 @@ class ProductoController extends Controller
             'nombre' => 'required|string|max:255',
             'categoria_id' => 'required|exists:categorias,id',
             'proveedor_id' => 'required|exists:proveedores,id',
-
-            'precio_compra' => 'required|numeric|min:0', 
-            'precio_venta' => 'required|numeric|min:0', 
             'descripcion' => 'nullable|string|max:1000',
-
             'stock' => 'required|integer|min:0',
         ]);
 
         $producto->update($request->all());
 
-        return redirect()->route('productos.index')->with('success', 'Producto actualizado correctamente');
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto actualizado correctamente');
     }
 
     /**
-     * Elimina el recurso especificado del almacenamiento.
+     * Elimina el producto.
      */
     public function destroy(Producto $producto)
     {
         $producto->delete();
 
-        return redirect()->route('productos.index')->with('success', 'Producto eliminado correctamente');
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto eliminado correctamente');
     }
 }

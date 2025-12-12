@@ -45,10 +45,15 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</th>
-                        
-                        {{-- COLUMNAS ELIMINADAS: Precio Compra, Precio Venta (Se gestionan en Presentaciones) --}}
-                        
+
+                        {{-- PRECIO COMPRA (del producto directamente) --}}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Precio Compra
+                        </th>
+
+                        {{-- PRECIO VENTA (RANGO de presentaciones) --}}
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precios (Rango)</th>
+
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Total</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Presentaciones</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -58,29 +63,41 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($productos as $prod)
                     <tr class="hover:bg-gray-50 transition duration-100">
+
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $prod->id }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $prod->nombre }}</td>
                         <td class="px-6 py-4 whitespace-normal text-sm text-gray-600 max-w-xs">{{ Str::limit($prod->descripcion, 50) }}</td> 
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $prod->categoria->nombre ?? 'N/A' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $prod->proveedor->nombre ?? 'N/A' }}</td>
-                        
-                        {{-- NUEVA COLUMNA: RANGO DE PRECIOS DE PRESENTACIONES --}}
+
+                        {{-- COLUMNA CORREGIDA — PRECIO COMPRA DEL PRODUCTO --}}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                            @if ($prod->precio_compra === null)
+                                N/A
+                            @else
+                                ${{ number_format($prod->precio_compra, 2) }}
+                            @endif
+                        </td>
+
+                        {{-- COLUMNA PRECIO VENTA (Rango desde presentaciones) --}}
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                             @php
                                 $minPrice = $prod->presentaciones->min('precio_venta');
                                 $maxPrice = $prod->presentaciones->max('precio_venta');
                             @endphp
-                            @if ($minPrice === $maxPrice)
+                            @if ($minPrice === null)
+                                N/A
+                            @elseif ($minPrice === $maxPrice)
                                 ${{ number_format($minPrice, 2) }}
                             @else
                                 ${{ number_format($minPrice, 2) }} - ${{ number_format($maxPrice, 2) }}
                             @endif
                         </td>
 
-                        {{-- COLUMNA STOCK TOTAL (usando el campo existente, asumiendo que contiene el stock consolidado) --}}
+                        {{-- STOCK --}}
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $prod->stock }}</td> 
                         
-                        {{-- NUEVA COLUMNA: ENLACE A PRESENTACIONES --}}
+                        {{-- PRESENTACIONES --}}
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                             <a href="{{ route('presentaciones.index', ['producto_id' => $prod->id]) }}" 
                                class="text-blue-600 hover:text-blue-800 mx-1 px-2 py-1 rounded-md border border-blue-300 transition duration-150"
@@ -89,6 +106,7 @@
                             </a>
                         </td>
 
+                        {{-- ACCIONES --}}
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                             
                             <a href="{{ route('productos.edit', $prod) }}" 
@@ -114,7 +132,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="px-6 py-4 text-center text-gray-500 italic"> 
+                        <td colspan="10" class="px-6 py-4 text-center text-gray-500 italic"> 
                             No se encontraron productos registrados.
                             <a href="{{ route('productos.create') }}" class="text-indigo-600 hover:text-indigo-800 ml-1">Crea uno ahora.</a>
                         </td>
@@ -124,13 +142,6 @@
 
             </table>
         </div>
-        
-        {{-- Paginación opcional --}}
-        {{-- @if($productos->hasPages())
-        <div class="px-6 py-4 bg-gray-50">
-              {{ $productos->links() }}
-        </div>
-        @endif --}}
     </div>
 
 @endsection

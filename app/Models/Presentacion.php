@@ -9,13 +9,14 @@ class Presentacion extends Model
 {
     use HasFactory;
 
-    // Aquí se indica la tabla real en la base de datos
+    // Nombre de la tabla
     protected $table = 'presentaciones';
 
-    // Si quieres asignación masiva
+    // Campos que se pueden asignar masivamente
     protected $fillable = [
         'producto_id',
         'nombre',
+        'precio_compra',   // 👈 AGREGA ESTE CAMPO
         'precio_venta',
         'cantidad_base'
     ];
