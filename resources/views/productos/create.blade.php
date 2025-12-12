@@ -1,40 +1,40 @@
-@extends('layout.app')
+@extends('layouts.admin')
 
 @section('content')
-<div class="container mt-4">
 
-    <h2>Crear Producto</h2>
+<h1 class="text-3xl font-semibold mb-8">Crear Producto</h1>
+
+<div class="max-w-lg bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20">
 
     <form action="{{ route('productos.store') }}" method="POST">
         @csrf
 
-        <div class="mb-3">
-            <label>Nombre</label>
-            <input type="text" class="form-control" name="nombre">
-        </div>
+        <label class="text-white">Nombre</label>
+        <input type="text" name="nombre"
+            class="w-full mt-1 mb-4 px-4 py-2 rounded-lg bg-white/20 text-white outline-none border border-white/20">
 
-        <div class="mb-3">
-            <label>Categoría</label>
-            <select name="categoria_id" class="form-control">
-                @foreach($categorias as $c)
-                <option value="{{ $c->id }}">{{ $c->nombre }}</option>
-                @endforeach
-            </select>
-        </div>
+        <label class="text-white">Categoría</label>
+        <select name="categoria_id"
+            class="w-full mt-1 mb-4 px-4 py-2 rounded-lg bg-white/20 text-white border border-white/20">
+            @foreach ($categorias as $cat)
+                <option value="{{ $cat->id }}">{{ $cat->nombre }}</option>
+            @endforeach
+        </select>
 
-        <div class="mb-3">
-            <label>Precio</label>
-            <input type="number" name="precio" class="form-control">
-        </div>
+        <label class="text-white">Precio</label>
+        <input type="number" name="precio"
+            class="w-full mt-1 mb-4 px-4 py-2 rounded-lg bg-white/20 text-white border border-white/20">
 
-        <div class="mb-3">
-            <label>Stock</label>
-            <input type="number" name="stock" class="form-control">
-        </div>
+        <label class="text-white">Stock</label>
+        <input type="number" name="stock"
+            class="w-full mt-1 mb-6 px-4 py-2 rounded-lg bg-white/20 text-white border border-white/20">
 
-        <button class="btn btn-primary">Guardar</button>
-        <a href="{{ route('productos.index') }}" class="btn btn-secondary">Cancelar</a>
+        <div class="flex gap-4">
+            <button class="bg-purple-500 px-5 py-2 rounded-lg hover:bg-purple-600 text-white">Guardar</button>
+            <a href="{{ route('productos.index') }}" class="px-5 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white">Cancelar</a>
+        </div>
     </form>
 
 </div>
+
 @endsection

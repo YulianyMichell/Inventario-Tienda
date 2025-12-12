@@ -1,35 +1,39 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+
+// Controladores
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventarioController;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\VentaController;
+use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ProveedorController;
+use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\PresentacionController;
 
 /*
 |--------------------------------------------------------------------------
-| Redirección inicial SIEMPRE al login (forzando logout)
+| Redirección inicial AL LOGIN
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () {
-    Auth::logout();             // 🔥 Fuerza cerrar sesión siempre
-    session()->invalidate();    // Limpia la sesión
-    session()->regenerateToken();
+Route::get('/', fn() => redirect()->route('login'));
 
-    return redirect()->route('login'); // Redirige al login
-});
 
 /*
 |--------------------------------------------------------------------------
-| Dashboard (solo autenticados)
+| Dashboard
 |--------------------------------------------------------------------------
 */
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
 
 /*
 |--------------------------------------------------------------------------
-| Perfil de usuario (Laravel Breeze)
+| Perfil del usuario
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
@@ -44,43 +48,65 @@ Route::middleware('auth')->group(function () {
         ->name('profile.destroy');
 });
 
+
 /*
 |--------------------------------------------------------------------------
-| Inventario (TODAS las rutas protegidas)
+| CRUD principales: Clientes / Proveedores / Productos
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->prefix('inventario')->name('inventario.')->group(function () {
+Route::middleware('auth')->group(function () {
 
-    Route::get('/', [InventarioController::class, 'index'])
-        ->name('index');
+    Route::resource('clientes', ClienteController::class);
+    Route::resource('proveedores', ProveedorController::class);
+    Route::resource('productos', ProductoController::class);
 
-    // Entradas
-    Route::get('/entrada', [InventarioController::class, 'createEntrada'])
-        ->name('createEntrada');
-
-    Route::post('/entrada', [InventarioController::class, 'storeEntrada'])
-        ->name('storeEntrada');
-
-    // Salidas
-    Route::get('/salida', [InventarioController::class, 'createSalida'])
-        ->name('createSalida');
-
-    Route::post('/salida', [InventarioController::class, 'storeSalida'])
-        ->name('storeSalida');
-
-    // Kardex
-    Route::get('/kardex', [InventarioController::class, 'kardex'])
-        ->name('kardex');
+    // FALTABAN ESTAS
+    Route::resource('categorias', CategoriaController::class);
+    Route::resource('presentaciones', PresentacionController::class);
 });
-// rutas del controlador de ventas
-Route::get('/ventas', [VentaController::class, 'index'])->name('ventas.index');
-Route::get('/ventas/create', [VentaController::class, 'create'])->name('ventas.create');
-Route::post('/ventas', [VentaController::class, 'store'])->name('ventas.store');
 
 
 /*
 |--------------------------------------------------------------------------
-| Rutas Breeze (login, register, logout, etc.)
+| Inventario
 |--------------------------------------------------------------------------
 */
-require __DIR__.'/auth.php';
+Route::middleware('auth')
+    ->prefix('inventario')
+    ->name('inventario.')
+    ->group(function () {
+
+        Route::get('/', [InventarioController::class, 'index'])->name('index');
+
+        Route::get('/entrada', [InventarioController::class, 'createEntrada'])->name('createEntrada');
+        Route::post('/entrada', [InventarioController::class, 'storeEntrada'])->name('storeEntrada');
+
+        Route::get('/salida', [InventarioController::class, 'createSalida'])->name('createSalida');
+        Route::post('/salida', [InventarioController::class, 'storeSalida'])->name('storeSalida');
+
+        Route::get('/kardex', [InventarioController::class, 'kardex'])->name('kardex');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Ventas
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')
+    ->prefix('ventas')
+    ->name('ventas.')
+    ->group(function () {
+
+        Route::get('/', [VentaController::class, 'index'])->name('index');
+        Route::get('/create', [VentaController::class, 'create'])->name('create');
+        Route::post('/', [VentaController::class, 'store'])->name('store');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Auth
+|--------------------------------------------------------------------------
+*/
+require __DIR__ . '/auth.php';

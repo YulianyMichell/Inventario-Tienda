@@ -1,23 +1,24 @@
-@extends('layout.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="container mt-4">
 
-    <h2>Crear Proveedor</h2>
+    <h2>Editar Proveedor</h2>
 
-    <form action="{{ route('proveedores.store') }}" method="POST">
+    <form action="{{ route('proveedores.update', $proveedor) }}" method="POST">
         @csrf
+        @method('PUT')
 
         <div class="mb-3">
             <label class="form-label">Nombre del proveedor</label>
-            <input type="text" name="nombre" class="form-control">
+            <input type="text" name="nombre" class="form-control" value="{{ $proveedor->nombre }}">
 
             @error('nombre')
                 <small class="text-danger">{{ $message }}</small>
             @enderror
         </div>
 
-        <button class="btn btn-primary">Guardar</button>
+        <button class="btn btn-primary">Actualizar</button>
         <a href="{{ route('proveedores.index') }}" class="btn btn-secondary">Cancelar</a>
 
     </form>
