@@ -28,7 +28,7 @@ class FacturaController extends Controller
     public function index()
     {
         $ventas = Venta::with('cliente')->orderBy('id', 'desc')->get();
-        return view('facturas.index', compact('ventas'));
+        return view('factura.index', compact('ventas'));
     }
 
     // Descargar factura en PDF.
