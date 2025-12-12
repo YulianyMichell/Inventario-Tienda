@@ -60,4 +60,12 @@
     </div>
 
     <!-- Total -->
-    <div class="bg-white shadow-lg rounded-xl p-6 borde
+    <div class="bg-white shadow-lg rounded-xl p-6 border border-gray-200 text-right">
+        <h2 class="text-2xl font-bold">
+            Total: ${{ number_format($total, 2) }}
+        </h2>
+    </div>
+
+</div>
+@endsection
+
