@@ -5,26 +5,16 @@
 @section('content')
     
     <h1 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-2">
-        📦 Historial de Inventario
+        Historial de Inventario
     </h1>
     
-    {{-- Botones para Registrar Movimiento (Entrada y Salida) --}}
-    <div class="mb-4 flex justify-end space-x-3">
-        
-        {{-- Botón de Entrada (Con los colores originales solicitados) --}}
+    {{-- Botón para Crear Movimiento (CORREGIDO: Apunta a createEntrada) --}}
+    <div class="mb-4 flex justify-end">
         <a href="{{ route('inventario.createEntrada') }}" 
            class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:opacity-90 active:opacity-75 focus:outline-none focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150"
            style="background-color: #8BB3FF; color: #132A54;">
             <i class="bi bi-plus-circle mr-2"></i>
             Registrar Entrada Manual
-        </a>
-        
-        {{-- Botón de Salida (Añadido con color rojo estándar) --}}
-        <a href="{{ route('inventario.createSalida') }}" 
-           class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:opacity-90 active:opacity-75 focus:outline-none focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150"
-           style="background-color: #EF4444; color: white;">
-            <i class="bi bi-dash-circle mr-2"></i>
-            Registrar Salida Manual
         </a>
     </div>
 
@@ -33,19 +23,12 @@
             <span class="block sm:inline">{{ session('success') }}</span>
         </div>
     @endif
-    
-    @if (session('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span class="block sm:inline">{{ session('error') }}</span>
-        </div>
-    @endif
 
     {{-- Contenedor de la Tabla --}}
     <div class="bg-white shadow-xl rounded-xl overflow-x-auto p-6">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    {{-- Columnas de Inventario: created_at, producto_id, tipo, cantidad, stock_anterior, stock_actual, descripcion, user_id --}}
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>

@@ -2,139 +2,118 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\Inventario;
 use App\Models\Producto;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class InventarioController extends Controller
 {
-    // -------------------------------------------
-    // Mostrar todos los movimientos del inventario
-    // -------------------------------------------
+    // Listar inventario
     public function index()
     {
-        // 🛑 CORRECCIÓN CLAVE: Se usa paginate() en lugar de get()
-        // para que la vista pueda usar $inventarios->links()
-        $inventarios = Inventario::with('producto', 'user')
-                                 ->orderBy('created_at', 'desc')
-                                 ->paginate(15); // Muestra 15 registros por página
-
+        $inventarios = Inventario::with('producto')->get();
         return view('inventario.index', compact('inventarios'));
     }
 
-    // -------------------------------------------
-    // Formulario para registrar una ENTRADA
-    // -------------------------------------------
-    public function createEntrada()
+    // Mostrar formulario para crear registro
+    public function create()
     {
         $productos = Producto::all();
-        return view('inventario.createEntrada', compact('productos'));
+        return view('inventario.create', compact('productos'));
     }
 
-    // -------------------------------------------
-    // Guardar ENTRADA de inventario
-    // -------------------------------------------
-    public function storeEntrada(Request $request)
+    // Guardar nuevo registro
+    public function store(Request $request)
     {
         $request->validate([
             'producto_id' => 'required|exists:productos,id',
-            'cantidad'    => 'required|integer|min:1',
-            'descripcion' => 'nullable|string|max:255',
+            'tipo' => 'required|string',
+            'cantidad' => 'required|integer|min:1',
+            'descripcion' => 'nullable|string',
         ]);
 
         $producto = Producto::findOrFail($request->producto_id);
 
-        $stock_anterior = $producto->stock;
-        $stock_actual   = $stock_anterior + $request->cantidad;
+        // Obtener stock anterior
+        $stock_anterior = $producto->stock ?? 0;
 
-        // Registrar movimiento
+        // Calcular stock actual
+        $stock_actual = $stock_anterior;
+        if ($request->tipo == 'compra') {
+            $stock_actual += $request->cantidad;
+        } elseif ($request->tipo == 'venta') {
+            $stock_actual -= $request->cantidad;
+        }
+
+        // Crear registro de inventario
         Inventario::create([
-            'producto_id'   => $request->producto_id,
-            'user_id'       => Auth::id(),
-            'tipo'          => 'entrada',
-            'cantidad'      => $request->cantidad,
-            'stock_anterior'=> $stock_anterior,
-            'stock_actual'  => $stock_actual,
-            // 'fecha' ya no es necesario si usas created_at, pero si existe en la BD:
-            // 'fecha'         => now(), 
-            'descripcion'   => $request->descripcion
+            'producto_id' => $request->producto_id,
+            'user_id' => Auth::id(),
+            'tipo' => $request->tipo,
+            'cantidad' => $request->cantidad,
+            'stock_anterior' => $stock_anterior,
+            'stock_actual' => $stock_actual,
+            'descripcion' => $request->descripcion,
         ]);
 
         // Actualizar stock del producto
         $producto->update(['stock' => $stock_actual]);
 
-        return redirect()->route('inventario.index')->with('success', 'Entrada registrada correctamente.');
+        return redirect()->route('inventario.index')->with('success', 'Registro de inventario creado correctamente.');
     }
 
-    // -------------------------------------------
-    // Formulario para registrar una SALIDA
-    // -------------------------------------------
-    public function createSalida()
+    // Mostrar formulario de edición
+    public function edit($id)
     {
+        $inventario = Inventario::findOrFail($id);
         $productos = Producto::all();
-        return view('inventario.createSalida', compact('productos'));
+        return view('inventario.edit', compact('inventario', 'productos'));
     }
 
-    // -------------------------------------------
-    // Guardar SALIDA de inventario
-    // -------------------------------------------
-    public function storeSalida(Request $request)
+    // Actualizar registro
+    public function update(Request $request, $id)
     {
         $request->validate([
             'producto_id' => 'required|exists:productos,id',
-            'cantidad'    => 'required|integer|min:1',
-            'descripcion' => 'nullable|string|max:255',
+            'tipo' => 'required|string',
+            'cantidad' => 'required|integer|min:1',
+            'descripcion' => 'nullable|string',
         ]);
 
+        $inventario = Inventario::findOrFail($id);
         $producto = Producto::findOrFail($request->producto_id);
 
-        // Validación para evitar stock negativo
-        if ($request->cantidad > $producto->stock) {
-            return back()->withInput()->with('error', 'La cantidad supera el stock disponible.');
+        // Ajustar stock
+        $stock_anterior = $inventario->stock_anterior;
+        $stock_actual = $stock_anterior;
+        if ($request->tipo == 'compra') {
+            $stock_actual += $request->cantidad;
+        } elseif ($request->tipo == 'venta') {
+            $stock_actual -= $request->cantidad;
         }
 
-        $stock_anterior = $producto->stock;
-        $stock_actual   = $stock_anterior - $request->cantidad;
-
-        // Registrar movimiento
-        Inventario::create([
-            'producto_id'   => $request->producto_id,
-            'user_id'       => Auth::id(),
-            'tipo'          => 'salida',
-            'cantidad'      => $request->cantidad,
-            'stock_anterior'=> $stock_anterior,
-            'stock_actual'  => $stock_actual,
-            // 'fecha' ya no es necesario si usas created_at, pero si existe en la BD:
-            // 'fecha'         => now(),
-            'descripcion'   => $request->descripcion
+        $inventario->update([
+            'producto_id' => $request->producto_id,
+            'tipo' => $request->tipo,
+            'cantidad' => $request->cantidad,
+            'stock_anterior' => $stock_anterior,
+            'stock_actual' => $stock_actual,
+            'descripcion' => $request->descripcion,
         ]);
 
-        // Actualizar stock
+        // Actualizar stock del producto
         $producto->update(['stock' => $stock_actual]);
 
-        return redirect()->route('inventario.index')->with('success', 'Salida registrada correctamente.');
+        return redirect()->route('inventario.index')->with('success', 'Registro de inventario actualizado correctamente.');
     }
-    
-    // -------------------------------------------
-    // Función para el Kardex
-    // -------------------------------------------
-    public function kardex(Request $request)
+
+    // Eliminar registro
+    public function destroy($id)
     {
-        $producto_id = $request->producto_id;
-        $movimientos = []; // Inicializamos como vacío
+        $inventario = Inventario::findOrFail($id);
+        $inventario->delete();
 
-        if ($producto_id) {
-            // Se usa with('user') para cargar el usuario
-            $movimientos = Inventario::where('producto_id', $producto_id)
-                ->with('user') 
-                ->orderBy('created_at', 'asc') // Ordenar por fecha de creación ascendente
-                ->get();
-        }
-
-        $productos = Producto::all();
-
-        return view('inventario.kardex', compact('movimientos', 'productos', 'producto_id')); // También pasamos producto_id para preseleccionar
+        return redirect()->route('inventario.index')->with('success', 'Registro eliminado correctamente.');
     }
-
 }
