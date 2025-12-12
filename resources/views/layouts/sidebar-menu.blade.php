@@ -37,6 +37,10 @@
         <x-menu-item title="Ventas" route="{{ route('ventas.index') }}" :active="request()->routeIs('ventas.index')">
             <i class="bi bi-cash-stack text-lg"></i>
         </x-menu-item>
+        <x-menu-item title="Facturas" route="{{ route('factura.index') }}" :active="request()->routeIs('factura.index')">
+    <i class="bi bi-receipt-cutoff"></i>
+</x-menu-item>
+
         
     </nav>
 

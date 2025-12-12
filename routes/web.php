@@ -66,6 +66,9 @@ Route::middleware('auth')->group(function () {
 });
 
 // Factura
+//lista de facturas
+Route::get('/facturas', [FacturaController::class, 'index'])->name('factura.index');
+//factura especifica
 Route::get('/factura/{venta}', [FacturaController::class, 'show'])->name('factura.show');
 
 
