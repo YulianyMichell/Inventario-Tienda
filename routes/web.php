@@ -65,6 +65,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('presentaciones', PresentacionController::class);
 });
 
+// Factura
+Route::get('/factura/{venta}', [FacturaController::class, 'show'])->name('factura.show');
+
+
 
 /*
 |--------------------------------------------------------------------------

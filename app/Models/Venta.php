@@ -30,4 +30,5 @@ class Venta extends Model
     {
         return $this->hasMany(VentaDetalle::class);
     }
+   
 }
